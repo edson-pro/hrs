@@ -46,7 +46,7 @@ export default function Dashboard() {
         title: "Employees",
         value: data ? data["employees"]?.value : "---",
         desc: "Total Employees",
-        role: ["admin", "mtn-admin"],
+        role: ["mtn-admin"],
       },
     ],
     [data]
@@ -75,7 +75,7 @@ export default function Dashboard() {
           <div className="grid rounded-b-lg bg-white border-slate-300 border border-t-transparent grid-cols-2 gap-2">
             {cards
               .filter((e) => {
-                return e.role.includes(user?.role) || e.role.includes("*");
+                return e.role.includes(user?.role);
               })
               .map((card, i) => {
                 return (
