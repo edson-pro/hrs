@@ -1,5 +1,13 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Archive, Command, Grid, LogOut, Package, Users } from "react-feather";
+import {
+  Archive,
+  Coffee,
+  Command,
+  Grid,
+  LogOut,
+  Package,
+  Users,
+} from "react-feather";
 import { useAuth } from "../context/authContext";
 import authServices from "../services/auth.services";
 
@@ -21,6 +29,12 @@ export default function Sidebar() {
       roles: ["admin", "mtn-admin"],
     },
     {
+      title: "Restorants",
+      link: "/restorants",
+      icon: Coffee,
+      roles: ["mtn-admin"],
+    },
+    {
       title: "Employees",
       link: "/employees",
       icon: Users,
@@ -40,6 +54,13 @@ export default function Sidebar() {
     <aside className="h-screen z-50 border-r border-slate-200 fixed flex flex-col justify-between bg-[#FFCC00] w-[280px]">
       <div>
         <div className="mt-4">
+          <Link to="/">
+            <img
+              className="h-10 ml-3 mb-1 w-12 rounded-md bg-cover"
+              src="https://www.mtn.com/wp-content/uploads/2022/02/MTN_2022_Logo_Black_RGB-sml.jpg"
+              alt=""
+            />
+          </Link>
           <div className="py-1">
             <span className="font-medium px-4 text-slate-500 text-[13px] uppercase">
               Navigation

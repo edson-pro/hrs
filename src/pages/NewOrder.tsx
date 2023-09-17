@@ -34,7 +34,7 @@ export default function NewOrder() {
     return getDocs(
       query(
         collection(firestore, "employees"),
-        where("code", "==", values.code?.toString())
+        where("code", "==", values.code)
       )
     )
       .then(({ docs }) => {
@@ -54,9 +54,7 @@ export default function NewOrder() {
       });
   };
 
-  const fetchMenus = async (e) => {
-    const { search, show } = e.queryKey[1];
-
+  const fetchMenus = async () => {
     const allMenusFromFirebase: any = await getDocs(
       query(collection(firestore, "menus"))
     ).then((e) => {
@@ -67,17 +65,9 @@ export default function NewOrder() {
         };
       });
     });
-
-    const res = allMenusFromFirebase.filter((menus: any) => {
-      console.log(menus["name"]?.toLowerCase());
-      return (
-        !search ||
-        (menus["name"]?.toLowerCase() || "").includes(search.toLowerCase())
-      );
-    });
     return {
-      total: res.length,
-      results: res.slice(0, show),
+      results: allMenusFromFirebase,
+      total: allMenusFromFirebase?.length,
     };
   };
 

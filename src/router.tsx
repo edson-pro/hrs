@@ -15,6 +15,7 @@ import OrderDetails from "./pages/OrderDetails";
 import Employees from "./pages/Employees";
 import CreateEmployee from "./pages/CreateEmployee";
 import EditEmployee from "./pages/EditEmployee";
+import Restorants from "./pages/Restorants";
 
 const router = createBrowserRouter([
   {
@@ -36,6 +37,14 @@ const router = createBrowserRouter([
             element: (
               <ProtectedRoute roles={["admin", "mtn-admin"]}>
                 <Orders />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "restorants",
+            element: (
+              <ProtectedRoute roles={["mtn-admin"]}>
+                <Restorants />
               </ProtectedRoute>
             ),
           },

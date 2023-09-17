@@ -58,9 +58,7 @@ export default function page() {
                     Login First to Your Account
                   </h4>
                   <p className="text-sm text-center font-medium leading-8 text-slate-500">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    <br />
-                    Eius similique asperiores.
+                    Enter your email and password to login your account.
                   </p>
                 </div>
                 <div className="space-y-3 mt-6">

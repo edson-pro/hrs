@@ -1,4 +1,4 @@
-import { Calendar, Check, RefreshCcw, Search, X } from "react-feather";
+import { Calendar, Check, Printer, RefreshCcw, Search, X } from "react-feather";
 import { Fragment, forwardRef, useState, useMemo } from "react";
 //  @ts-ignore
 import { useClickAway } from "@uidotdev/usehooks";
@@ -145,6 +145,7 @@ export default function Orders() {
       });
   };
 
+  const handleGenerateReport = async () => {};
   return (
     <Fragment>
       <div>
@@ -294,6 +295,7 @@ export default function Orders() {
                 >
                   <div className="flex  col-span-2 items-center gap-4">
                     <Avatar
+                      className="bg-slate-100"
                       size="40px"
                       round="100%"
                       name={e.customer?.names}
@@ -397,6 +399,15 @@ export default function Orders() {
                 </div>
               ))}
           </div>
+          <a
+            onClick={() => {
+              handleGenerateReport();
+            }}
+            className="flex items-center  text-gray-700 hover:text-gray-800 cursor-pointer gap-3 font-semibold"
+          >
+            <Printer size={16} />
+            <span className="text-[13.5px]">Generate Report</span>
+          </a>
 
           {status === "success" && (
             <div className="flex justify-end items-center gap-4 w-full">

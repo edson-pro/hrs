@@ -23,9 +23,11 @@ export default function Navbar() {
         <div className="px-7 flex py-2 items-center  justify-between">
           <div>
             <div className="flex items-start gap-[6px] flex-col">
-              <h4 className="font-semibold text-[14.5px]">Dashboard</h4>
-              <p className="text-[13.5px] font-medium text-gray-500">
-                Good evening, {user?.username}
+              <h4 className="font-semibold capitalize text-[14.5px]">
+                {user?.name || "Dashboard"}
+              </h4>
+              <p className="text-[13.5px] capitalize font-medium text-gray-500">
+                Good evening, at {user?.username}
               </p>
             </div>
           </div>

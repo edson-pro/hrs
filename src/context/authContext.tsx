@@ -1,5 +1,12 @@
 import { onIdTokenChanged } from "firebase/auth";
-import { doc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { useState, useEffect, useContext, createContext } from "react";
 import { auth, firestore } from "../config/firebase";
 
@@ -44,16 +51,29 @@ function useProvideAuth() {
 
   const setCurrentUser = async (user: any) => {
     if (user) {
-      setTimeout(() => {
-        setUser({
-          username: user.email.split("@")[0],
-          email: user.email,
-          photoURL: user.photoURL,
-          id: user.uid,
-          role: user.email === "mtnadmin@gmail.com" ? "mtn-admin" : "admin",
-        });
-        setLoading(false);
-      }, 1000);
+      const restrant: any =
+        user.email !== "mtnadmin@gmail.com"
+          ? await getDocs(
+              query(
+                collection(firestore, "restorants"),
+                where("email", "==", user.email)
+              )
+            ).then(({ docs }) => {
+              if (docs[0]) {
+                return { ...docs[0]?.data(), id: docs[0].id };
+              }
+            })
+          : undefined;
+
+      setUser({
+        username: user.email.split("@")[0],
+        name: restrant?.name,
+        email: user.email,
+        photoURL: user.photoURL,
+        id: user.uid,
+        role: user.email === "mtnadmin@gmail.com" ? "mtn-admin" : "admin",
+      });
+      setLoading(false);
     } else {
       setLoading(false);
     }
