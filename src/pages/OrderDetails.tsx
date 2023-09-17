@@ -3,7 +3,6 @@ import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import { firestore } from "../config/firebase";
 import Loader from "../components/Loader";
-import { useState } from "react";
 
 export default function OrderDetails() {
   const params = useParams();
@@ -23,7 +22,6 @@ export default function OrderDetails() {
     retry: 1,
   });
 
-  const [menu, setmenu] = useState(false);
   return (
     <div className="px-3">
       {" "}
