@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  @apply bg-slate-100;
+}
+
 @keyframes indeterminateAnimation {
   0% {
     transform: translateX(0) scaleX(0);

@@ -11,7 +11,7 @@ export default function Select({
     <div>
       <label
         htmlFor="email"
-        className="block text-sm mb-[6px] capitalize font-medium text-blue-800"
+        className="block text-sm mb-[6px] capitalize font-medium text-yellow-500"
       >
         {label}
       </label>

@@ -14,7 +14,10 @@ export default function AppFormCreatableSelect({
     useFormikContext();
   return (
     <div>
-      <label htmlFor={name} className="block text-sm font-medium text-blue-800">
+      <label
+        htmlFor={name}
+        className="block text-sm font-medium text-yellow-500"
+      >
         {label}
       </label>
       <CreatableSelect

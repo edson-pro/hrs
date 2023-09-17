@@ -6,7 +6,7 @@ export default function AppFormPhone({ name, label, ...other }) {
     useFormikContext();
   return (
     <div>
-      <label className="block mb-2 text-sm font-medium text-blue-800">
+      <label className="block mb-2 text-sm font-medium text-yellow-500">
         {label}
       </label>
       <div

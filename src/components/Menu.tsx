@@ -3,7 +3,7 @@ import { Fragment } from "react";
 import { useClickAway } from "@uidotdev/usehooks";
 
 export default function Menu({ actions, className, close }: any) {
-  const ref = useClickAway(() => {
+  const ref: any = useClickAway(() => {
     close(false);
   });
 

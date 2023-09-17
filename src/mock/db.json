@@ -1,0 +1,12 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "first_name": "Ntwali",
+      "last_name": "Edson",
+      "phone_number": "+250725012345",
+      "password": 12345678,
+      "gender": "Male"
+    }
+  ]
+}

@@ -11,8 +11,10 @@ import { firestore } from "../config/firebase";
 import Loader from "../components/Loader";
 import toast from "react-hot-toast";
 
-export default function Employees() {
+export default function Menus() {
   const [showSearch, setshowSearch] = useState(false);
+
+  const [sort, setsort] = useState<any>();
 
   const ref: any = useClickAway(() => {
     setshowSearch(false);
@@ -26,20 +28,21 @@ export default function Employees() {
 
   const qk = useMemo(
     () => [
-      "employeees",
+      "menus",
       {
         search: debouncedValue,
+        sort,
         show,
       },
     ],
-    [debouncedValue, show]
+    [debouncedValue, sort, show]
   );
 
-  const fetchEmployees = async (e) => {
+  const fetchMenus = async (e) => {
     const { search, show } = e.queryKey[1];
 
-    const allEmployeeesFromFirebase: any = await getDocs(
-      query(collection(firestore, "employees"))
+    const allMenusFromFirebase: any = await getDocs(
+      query(collection(firestore, "menus"))
     ).then((e) => {
       return e.docs.map((e) => {
         return {
@@ -49,12 +52,11 @@ export default function Employees() {
       });
     });
 
-    const res = allEmployeeesFromFirebase.filter((employeees: any) => {
+    const res = allMenusFromFirebase.filter((menus: any) => {
+      console.log(menus["name"]?.toLowerCase());
       return (
         !search ||
-        (employeees["names"]?.toLowerCase() || "").includes(
-          search.toLowerCase()
-        )
+        (menus["name"]?.toLowerCase() || "").includes(search.toLowerCase())
       );
     });
     return {
@@ -64,7 +66,7 @@ export default function Employees() {
   };
 
   const { status, data, isFetching, error, refetch } = useQuery({
-    queryFn: fetchEmployees,
+    queryFn: fetchMenus,
     keepPreviousData: true,
     refetchOnWindowFocus: false,
     queryKey: qk,
@@ -73,25 +75,26 @@ export default function Employees() {
 
   const clearFilters = () => {
     setsearchValue("");
+    setsort(undefined);
     refetch();
   };
 
-  const [deletingEmployee, setdeletingEmployee] = useState<any>();
+  const [deletingMenu, setdeletingMenu] = useState<any>();
 
-  const handleDeleteEmployee = async (e) => {
-    setdeletingEmployee(e.id);
-    return await deleteDoc(doc(firestore, "employees", e.id))
+  const handleDeleteMenu = async (e) => {
+    setdeletingMenu(e.id);
+    return await deleteDoc(doc(firestore, "menus", e.id))
       .then(() => {
-        setdeletingEmployee(undefined);
+        setdeletingMenu(undefined);
         refetch();
       })
       .then(() => {
-        setdeletingEmployee(undefined);
+        setdeletingMenu(undefined);
         refetch();
-        toast.success("Employee deleted successfully");
+        toast.success("Menu deleted successfully");
       })
       .catch((e) => {
-        setdeletingEmployee(undefined);
+        setdeletingMenu(undefined);
         toast.error(e.message);
       });
   };
@@ -102,19 +105,19 @@ export default function Employees() {
         <div className="flex items-center gap-3 justify-between">
           <div>
             <h4 className="text-blue-800 mb-1 text-xl font-semibold capitalize">
-              {status === "loading" ? "---" : `${data?.total || 0} Employees`}
+              {status === "loading" ? "---" : `${data?.total || 0} Menus`}
             </h4>
             <p className="text-[13.5px] font-medium text-gray-500">
-              Total Employees available
+              Total menus available
             </p>
           </div>
           <div>
             <Link
               className="flex items-center gap-3 text-blue-800 font-semibold"
-              to="/employees/new"
+              to="/menus/new"
             >
               <PlusCircle size={"16px"} />
-              <span className="text-sm">Add new Employees</span>
+              <span className="text-sm">Add new Menu</span>
             </Link>
           </div>
         </div>
@@ -139,7 +142,7 @@ export default function Employees() {
                   stroke-linejoin="round"
                 />
               </svg>
-              <span className="text-sm text-gray-700">All Employees</span>
+              <span className="text-sm text-gray-700">All Menus</span>
               {isFetching ? (
                 <Loader />
               ) : (
@@ -193,17 +196,17 @@ export default function Employees() {
               </div>
               <div className="flex col-span-2 items-center justify-start">
                 <a className="text-sm cursor-pointer  flex items-center gap-2  font-medium text-gray-500 capitalize ">
-                  <span>Created at</span>
+                  <span>description</span>
                 </a>
               </div>
               <div className="flex items-center justify-start">
                 <a className="text-sm cursor-pointer  flex items-center gap-2  font-medium text-gray-500 capitalize ">
-                  <span>role</span>
+                  <span>Price</span>
                 </a>
               </div>
               <div className="flex items-center justify-start">
                 <a className="text-sm cursor-pointer  flex items-center gap-2  font-medium text-gray-500 capitalize ">
-                  <span>code</span>
+                  <span>Available</span>
                 </a>
               </div>
 
@@ -236,53 +239,44 @@ export default function Employees() {
                 <div className="grid border cursor-pointer border-slate-200 rounded-md p-3 my-3 grid-cols-7">
                   <div className="flex  col-span-2 items-center gap-4">
                     <img
-                      className="h-12 object-cover rounded-full border border-slate-300 w-12"
+                      className="h-12 border border-slate-300 w-12 rounded-md"
                       src={
-                        e.photo ||
+                        e.image ||
                         "https://www.pulsecarshalton.co.uk/wp-content/uploads/2016/08/jk-placeholder-image.jpg"
                       }
                     />
                     <div>
                       <h4 className="text-[13.5px] mb-1 capitalize text-blue-800 font-semibold">
-                        {e.names}
+                        {e.name}
                       </h4>
                       <span className="text-[13px] capitalize text-gray-500 font-medium">
-                        {e.role}
+                        {e.category}
                       </span>
                     </div>
                   </div>
                   <div className="flex col-span-2 pr-7  gap-2 flex-col items-start justify-center">
                     <span className="text-sm leading-7 line-clamp-2 font-medium text-slate-500 capitalize">
-                      {new Date(e.created_at?.toDate()).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          minute: "numeric",
-                          hour: "numeric",
-                        }
-                      )}
+                      {e.description}
                     </span>
                   </div>
                   <div className="flex flex-col gap-2 items-start justify-center">
                     <span className="text-sm   leading-7 font-medium text-blue-800 capitalize">
-                      {e.role || "Employee"}
+                      {e.price} Frw
                     </span>
                   </div>{" "}
                   <div className="flex  gap-2 flex-col items-start justify-center">
                     <span className="text-[13px] text-slate-600 font-medium">
-                      {e.code}
+                      {e.availability ? "Yes" : "No"}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 justify-end">
                     <Link
-                      to={`/employees/${e.id}/edit`}
+                      to={`/menus/${e.id}/edit`}
                       className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
                     >
                       <Edit className="text-blue-500 " size={18} />
                     </Link>
-                    {deletingEmployee?.id === e.id ? (
+                    {deletingMenu?.id === e.id ? (
                       <Loader />
                     ) : (
                       <a
@@ -290,7 +284,7 @@ export default function Employees() {
                         onClick={(i) => {
                           i.stopPropagation();
                           if (confirm("Are you sure you want to delete?")) {
-                            handleDeleteEmployee(e);
+                            handleDeleteMenu(e);
                           }
                         }}
                       >

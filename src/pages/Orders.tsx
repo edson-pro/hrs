@@ -1,18 +1,40 @@
-import { Edit, PlusCircle, RefreshCcw, Search, Trash, X } from "react-feather";
-import { Link } from "react-router-dom";
-import { Fragment, useState, useMemo } from "react";
+import { Calendar, Check, RefreshCcw, Search, X } from "react-feather";
+import { Fragment, forwardRef, useState, useMemo } from "react";
 //  @ts-ignore
 import { useClickAway } from "@uidotdev/usehooks";
 import "react-datepicker/dist/react-datepicker.css";
 import { useQuery } from "react-query";
 import { useDebounce } from "usehooks-ts";
-import { collection, deleteDoc, doc, getDocs, query } from "firebase/firestore";
+import { collection, doc, getDocs, query, updateDoc } from "firebase/firestore";
 import { firestore } from "../config/firebase";
 import Loader from "../components/Loader";
 import toast from "react-hot-toast";
+import DatePicker from "react-datepicker";
+import Avatar from "react-avatar";
 
-export default function Employees() {
+const DateInput = forwardRef(({ value, onClick }: any, ref: any) => (
+  <a
+    onClick={onClick}
+    ref={ref}
+    className="flex items-center cursor-pointer gap-3 font-semibold"
+  >
+    <Calendar size={16} />
+    <span className="text-[13.5px] text-gray-700">
+      {value
+        ? new Date(value).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "Choose date"}
+    </span>
+  </a>
+));
+
+export default function Orders() {
   const [showSearch, setshowSearch] = useState(false);
+
+  const [sort, setsort] = useState<any>();
 
   const ref: any = useClickAway(() => {
     setshowSearch(false);
@@ -24,22 +46,26 @@ export default function Employees() {
 
   const debouncedValue = useDebounce<string>(searchValue, 500);
 
+  const [filterDate, setfilterDate] = useState<any>();
+
   const qk = useMemo(
     () => [
-      "employeees",
+      "orders",
       {
         search: debouncedValue,
+        sort,
         show,
+        filterDate,
       },
     ],
-    [debouncedValue, show]
+    [debouncedValue, sort, show, filterDate]
   );
 
-  const fetchEmployees = async (e) => {
-    const { search, show } = e.queryKey[1];
+  const fetchOrders = async (e) => {
+    const { filterDate, search, show } = e.queryKey[1];
 
-    const allEmployeeesFromFirebase: any = await getDocs(
-      query(collection(firestore, "employees"))
+    const allOrdersFromFirebase: any = await getDocs(
+      query(collection(firestore, "orders"))
     ).then((e) => {
       return e.docs.map((e) => {
         return {
@@ -49,12 +75,16 @@ export default function Employees() {
       });
     });
 
-    const res = allEmployeeesFromFirebase.filter((employeees: any) => {
+    const res = allOrdersFromFirebase.filter((order: any) => {
+      console.log(new Date(filterDate).toLocaleDateString());
       return (
-        !search ||
-        (employeees["names"]?.toLowerCase() || "").includes(
-          search.toLowerCase()
-        )
+        (!search ||
+          (order["customer"].name?.toLowerCase() || "").includes(
+            search.toLowerCase()
+          )) &&
+        (!filterDate ||
+          new Date(order?.created_at.toDate()).toLocaleDateString() ===
+            new Date(filterDate).toLocaleDateString())
       );
     });
     return {
@@ -64,7 +94,7 @@ export default function Employees() {
   };
 
   const { status, data, isFetching, error, refetch } = useQuery({
-    queryFn: fetchEmployees,
+    queryFn: fetchOrders,
     keepPreviousData: true,
     refetchOnWindowFocus: false,
     queryKey: qk,
@@ -73,25 +103,44 @@ export default function Employees() {
 
   const clearFilters = () => {
     setsearchValue("");
+    setsort(undefined);
     refetch();
   };
 
-  const [deletingEmployee, setdeletingEmployee] = useState<any>();
+  const [cancelingOrder, setcancelingOrder] = useState<any>();
 
-  const handleDeleteEmployee = async (e) => {
-    setdeletingEmployee(e.id);
-    return await deleteDoc(doc(firestore, "employees", e.id))
+  const [markingOrder, setmarkingOrder] = useState<any>();
+
+  const handleMarkOrder = async (e) => {
+    setmarkingOrder(e.id);
+    return await updateDoc(doc(firestore, "orders", e.id), {
+      status: "completed",
+    })
       .then(() => {
-        setdeletingEmployee(undefined);
+        setmarkingOrder(undefined);
         refetch();
+        toast.success("Order completed successfully");
       })
-      .then(() => {
-        setdeletingEmployee(undefined);
-        refetch();
-        toast.success("Employee deleted successfully");
-      })
+      .then(() => {})
       .catch((e) => {
-        setdeletingEmployee(undefined);
+        setmarkingOrder(undefined);
+        toast.error(e.message);
+      });
+  };
+
+  const handleCancelOrder = async (e) => {
+    setcancelingOrder(e.id);
+    return await updateDoc(doc(firestore, "orders", e.id), {
+      status: "canceled",
+    })
+      .then(() => {
+        setcancelingOrder(undefined);
+        refetch();
+        toast.success("Order Cancled successfully");
+      })
+      .then(() => {})
+      .catch((e) => {
+        setcancelingOrder(undefined);
         toast.error(e.message);
       });
   };
@@ -102,21 +151,13 @@ export default function Employees() {
         <div className="flex items-center gap-3 justify-between">
           <div>
             <h4 className="text-blue-800 mb-1 text-xl font-semibold capitalize">
-              {status === "loading" ? "---" : `${data?.total || 0} Employees`}
+              {status === "loading" ? "---" : `${data?.total || 0} Orders`}
             </h4>
             <p className="text-[13.5px] font-medium text-gray-500">
-              Total Employees available
+              Total orders available
             </p>
           </div>
-          <div>
-            <Link
-              className="flex items-center gap-3 text-blue-800 font-semibold"
-              to="/employees/new"
-            >
-              <PlusCircle size={"16px"} />
-              <span className="text-sm">Add new Employees</span>
-            </Link>
-          </div>
+          <div></div>
         </div>
         <div className="py-8">
           <div className="w-full border-b py-3 border-gray-300 flex items-center justify-between">
@@ -139,7 +180,7 @@ export default function Employees() {
                   stroke-linejoin="round"
                 />
               </svg>
-              <span className="text-sm text-gray-700">All Employees</span>
+              <span className="text-sm text-gray-700">All Orders</span>
               {isFetching ? (
                 <Loader />
               ) : (
@@ -182,28 +223,39 @@ export default function Employees() {
                   <span className="text-[13.5px]">Search</span>
                 </a>
               )}
+              <DatePicker
+                selected={filterDate}
+                onChange={(date) => setfilterDate(date)}
+                customInput={<DateInput />}
+              />
             </div>
           </div>
           <div className="my-6">
-            <div className="grid grid-cols-7">
-              <div className="col-span-2 ">
+            <div className="grid grid-cols-9">
+              <div className="col-span-2">
                 <a className="text-sm cursor-pointer flex items-center gap-2 font-medium text-gray-500 capitalize ">
-                  <span>Name</span>
+                  <span>Customer</span>
                 </a>
               </div>
-              <div className="flex col-span-2 items-center justify-start">
+              <div className="flex col-span-2  items-center justify-start">
                 <a className="text-sm cursor-pointer  flex items-center gap-2  font-medium text-gray-500 capitalize ">
-                  <span>Created at</span>
+                  <span>Menu</span>
+                </a>
+              </div>
+              <div className="flex items-center col-span-2 justify-start">
+                <a className="text-sm cursor-pointer  flex items-center gap-2  font-medium text-gray-500 capitalize ">
+                  <span>Ordered At</span>
                 </a>
               </div>
               <div className="flex items-center justify-start">
                 <a className="text-sm cursor-pointer  flex items-center gap-2  font-medium text-gray-500 capitalize ">
-                  <span>role</span>
+                  <span>Price</span>
                 </a>
               </div>
+
               <div className="flex items-center justify-start">
                 <a className="text-sm cursor-pointer  flex items-center gap-2  font-medium text-gray-500 capitalize ">
-                  <span>code</span>
+                  <span>status</span>
                 </a>
               </div>
 
@@ -233,27 +285,41 @@ export default function Employees() {
 
             {status === "success" &&
               data.results.map((e) => (
-                <div className="grid border cursor-pointer border-slate-200 rounded-md p-3 my-3 grid-cols-7">
+                <div
+                  onClick={() => {
+                    // open in new tab
+                    window.open(`/orders/${e.id}`);
+                  }}
+                  className="grid border hover:bg-white hover:bg-opacity-50 cursor-pointer border-slate-200 rounded-md p-3 my-3 grid-cols-9"
+                >
                   <div className="flex  col-span-2 items-center gap-4">
-                    <img
-                      className="h-12 object-cover rounded-full border border-slate-300 w-12"
-                      src={
-                        e.photo ||
-                        "https://www.pulsecarshalton.co.uk/wp-content/uploads/2016/08/jk-placeholder-image.jpg"
-                      }
+                    <Avatar
+                      size="40px"
+                      round="100%"
+                      name={e.customer?.names}
+                      src={e.customer?.photo}
                     />
                     <div>
-                      <h4 className="text-[13.5px] mb-1 capitalize text-blue-800 font-semibold">
-                        {e.names}
+                      <h4 className="text-[13.5px] truncate mb-1 capitalize text-blue-800 font-semibold">
+                        {e?.customer?.names}
                       </h4>
                       <span className="text-[13px] capitalize text-gray-500 font-medium">
-                        {e.role}
+                        Customer
                       </span>
                     </div>
                   </div>
-                  <div className="flex col-span-2 pr-7  gap-2 flex-col items-start justify-center">
-                    <span className="text-sm leading-7 line-clamp-2 font-medium text-slate-500 capitalize">
-                      {new Date(e.created_at?.toDate()).toLocaleDateString(
+                  <div className="flex col-span-2  pr-7  gap-2 flex-col items-start justify-center">
+                    <span className="text-sm truncate leading-7 line-clamp-2 font-medium  text-blue-800 capitalize">
+                      {e?.menu?.name}
+                    </span>
+                    <span className="text-[13px] capitalize text-gray-500 font-medium">
+                      Menu
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col col-span-2 gap-2 items-start justify-center">
+                    <span className="text-sm truncate leading-7 font-medium text-blue-800 capitalize">
+                      {new Date(e.created_at.toDate()).toLocaleDateString(
                         "en-US",
                         {
                           year: "numeric",
@@ -264,38 +330,68 @@ export default function Employees() {
                         }
                       )}
                     </span>
+                    <span className="text-[13px] capitalize text-gray-500 font-medium">
+                      Ordered at
+                    </span>
                   </div>
                   <div className="flex flex-col gap-2 items-start justify-center">
                     <span className="text-sm   leading-7 font-medium text-blue-800 capitalize">
-                      {e.role || "Employee"}
+                      {e?.amount} Frw
                     </span>
-                  </div>{" "}
+                    <span className="text-[13px] capitalize text-gray-500 font-medium">
+                      Amount
+                    </span>
+                  </div>
                   <div className="flex  gap-2 flex-col items-start justify-center">
-                    <span className="text-[13px] text-slate-600 font-medium">
-                      {e.code}
+                    <span
+                      className={`text-sm font-medium  px-4 py-[6px] rounded-md capitalize ${
+                        e.status === "completed"
+                          ? "text-green-500 bg-green-500 bg-opacity-25"
+                          : e.status === "canceled"
+                          ? "text-red-500 bg-red-500  bg-opacity-25"
+                          : e.status === "pending"
+                          ? "text-yellow-500 bg-yellow-500  bg-opacity-25"
+                          : ""
+                      }`}
+                    >
+                      {e.status}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 justify-end">
-                    <Link
-                      to={`/employees/${e.id}/edit`}
-                      className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
-                    >
-                      <Edit className="text-blue-500 " size={18} />
-                    </Link>
-                    {deletingEmployee?.id === e.id ? (
-                      <Loader />
-                    ) : (
-                      <a
-                        className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
-                        onClick={(i) => {
-                          i.stopPropagation();
-                          if (confirm("Are you sure you want to delete?")) {
-                            handleDeleteEmployee(e);
-                          }
-                        }}
-                      >
-                        <Trash className="text-red-500 " size={18} />
-                      </a>
+                    {e.status === "pending" && (
+                      <Fragment>
+                        {markingOrder?.id === e.id ? (
+                          <Loader />
+                        ) : (
+                          <a
+                            className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
+                            onClick={(i) => {
+                              i.stopPropagation();
+                              if (confirm("Are you sure mark as completed?")) {
+                                handleMarkOrder(e);
+                              }
+                            }}
+                          >
+                            <Check className="text-green-500 " size={18} />
+                          </a>
+                        )}
+
+                        {cancelingOrder?.id === e.id ? (
+                          <Loader />
+                        ) : (
+                          <a
+                            className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
+                            onClick={(i) => {
+                              i.stopPropagation();
+                              if (confirm("Are you sure you want to cancel?")) {
+                                handleCancelOrder(e);
+                              }
+                            }}
+                          >
+                            <X className="text-red-500 " size={18} />
+                          </a>
+                        )}
+                      </Fragment>
                     )}
                   </div>
                 </div>

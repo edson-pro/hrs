@@ -1,10 +1,11 @@
 import Avatar from "react-avatar";
-import { LogOut, User } from "react-feather";
+import { LogOut } from "react-feather";
 //  @ts-ignore
 import { useClickAway } from "@uidotdev/usehooks";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/auth";
+import { useAuth } from "../context/authContext";
+import authServices from "../services/auth.services";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,7 +14,7 @@ export default function Navbar() {
     setIsOpen(false);
   });
 
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout }: any = useAuth();
 
   const navigate = useNavigate();
   return (
@@ -24,7 +25,7 @@ export default function Navbar() {
             <div className="flex items-start gap-[6px] flex-col">
               <h4 className="font-semibold text-[14.5px]">Dashboard</h4>
               <p className="text-[13.5px] font-medium text-gray-500">
-                Good evening, {user?.first_name}
+                Good evening, {user?.username}
               </p>
             </div>
           </div>
@@ -38,12 +39,7 @@ export default function Navbar() {
                   setIsOpen(!isOpen);
                 }}
               >
-                <Avatar
-                  textSizeRatio={1}
-                  size="40px"
-                  round="100%"
-                  name={user?.first_name + " " + user?.last_name}
-                />
+                <Avatar size="40px" round="100%" name={user?.username} />
               </a>
             )}
 
@@ -58,9 +54,10 @@ export default function Navbar() {
                       className="flex text-sm px-3  cursor-pointer rounded-md py-2 my-1 font-medium text-gray-600 items-center gap-3 hover:bg-gray-200"
                       onClick={() => {
                         if (confirm("Are you sure you want to logout?")) {
-                          navigate("/login");
-                          logout();
-                          setIsOpen(false);
+                          return authServices.logout().then(() => {
+                            navigate("/login");
+                            logout();
+                          });
                         }
                       }}
                     >

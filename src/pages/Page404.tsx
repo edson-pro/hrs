@@ -1,9 +1,90 @@
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import Button from "../components/Button";
+import { firestore } from "../config/firebase";
 
 export default function Page404() {
+  const orders = [
+    {
+      customer: {
+        id: "1",
+        name: "John Doe",
+      },
+      menu: {
+        id: "1",
+        name: "Bruschetta al Pomodoro",
+      },
+      amount: 30,
+      status: "pending",
+    },
+  ];
+  // const menus = [
+  //   {
+  //     name: "Bruschetta al Pomodoro",
+  //     description:
+  //       "Toasted bread topped with fresh tomatoes, garlic, and basil.",
+  //     category: "Antipasti",
+  //     price: 12.99,
+  //     ingredients: ["Bread", "Tomatoes", "Garlic", "Basil"],
+  //     availability: true,
+  //   },
+  //   {
+  //     name: "Spaghetti Carbonara",
+  //     description: "Spaghetti with eggs, cheese, pancetta, and black pepper.",
+  //     category: "Primi Piatti",
+  //     price: 15.99,
+  //     ingredients: ["Spaghetti", "Eggs", "Pancetta", "Cheese"],
+  //     availability: true,
+  //   },
+  //   {
+  //     name: "Osso Buco",
+  //     description: "Braised veal shanks with gremolata and white wine sauce.",
+  //     category: "Secondi Piatti",
+  //     price: 24.99,
+  //     ingredients: ["Veal Shanks", "Gremolata", "White Wine"],
+  //     availability: true,
+  //   },
+  //   {
+  //     name: "Maguro (Tuna) Nigiri",
+  //     description: "Fresh tuna slices on bite-sized beds of rice.",
+  //     category: "Nigiri Sushi",
+  //     price: 5.99,
+  //     ingredients: ["Tuna", "Sushi Rice"],
+  //     availability: true,
+  //   },
+  //   {
+  //     name: "California Roll",
+  //     description:
+  //       "Avocado, crab, and cucumber rolled in sushi rice and seaweed.",
+  //     category: "Maki Rolls",
+  //     price: 9.99,
+  //     ingredients: ["Avocado", "Crab", "Cucumber", "Sushi Rice", "Seaweed"],
+  //     availability: true,
+  //   },
+  //   {
+  //     name: "Sake (Salmon) Sashimi",
+  //     description: "Thin slices of fresh salmon served raw.",
+  //     category: "Sashimi",
+  //     price: 7.99,
+  //     ingredients: ["Salmon"],
+  //     availability: true,
+  //   },
+  // ];
+  const seedMenus = () => {
+    return orders.forEach(async (menu) => {
+      await addDoc(collection(firestore, "orders"), {
+        ...menu,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+      }).then(() => {
+        console.log("orders added!");
+      });
+    });
+  };
   return (
     <div>
-      {" "}
+      <a className="hidden" onClick={seedMenus}>
+        dcdc
+      </a>
       <div>
         <div className="flex items-center justify-center flex-col gap-4 py-24">
           <div className="bg-red-200 border-[6px] border-red-100 h-16 w-16 rounded-full flex items-center justify-center">

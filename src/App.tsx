@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "react-query";
-import { AuthProvider } from "./context/auth";
 import { Outlet } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { AuthProvider } from "./context/authContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
