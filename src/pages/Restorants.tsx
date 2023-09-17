@@ -188,7 +188,7 @@ export default function Restorants() {
 
               <div className="flex items-center justify-start">
                 <a className="text-sm cursor-pointer  flex items-center gap-2  font-medium text-gray-500 capitalize ">
-                  <span>email</span>
+                  <span>Revenue</span>
                 </a>
               </div>
 
@@ -249,21 +249,18 @@ export default function Restorants() {
 
                   <div className="flex  gap-2 flex-col items-start justify-center">
                     <span className="text-[13px] text-slate-600 font-medium">
-                      {e.email}
+                      {e?.revenue}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 justify-end">
-                    <a
+                    {/* <a
                       className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
                       onClick={(i) => {
-                        i.stopPropagation();
-                        if (confirm("Are you sure you want to delete?")) {
-                          handleDeleteRestorant(e);
-                        }
+                        window.print();
                       }}
                     >
                       <Printer className="text-green-500 " size={18} />
-                    </a>
+                    </a> */}
                     <a
                       className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
                       onClick={(i) => {

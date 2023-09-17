@@ -79,7 +79,7 @@ export default function Orders() {
       console.log(new Date(filterDate).toLocaleDateString());
       return (
         (!search ||
-          (order["customer"].name?.toLowerCase() || "").includes(
+          (order["customer"].names?.toLowerCase() || "").includes(
             search.toLowerCase()
           )) &&
         (!filterDate ||
@@ -399,33 +399,45 @@ export default function Orders() {
                 </div>
               ))}
           </div>
-          <a
-            onClick={() => {
-              handleGenerateReport();
-            }}
-            className="flex items-center  text-gray-700 hover:text-gray-800 cursor-pointer gap-3 font-semibold"
-          >
-            <Printer size={16} />
-            <span className="text-[13.5px]">Generate Report</span>
-          </a>
 
           {status === "success" && (
-            <div className="flex justify-end items-center gap-4 w-full">
-              <select
-                value={show}
-                onChange={(e) => {
-                  setshow(parseInt(e.target.value));
-                }}
-                className="text-sm border border-slate-200 px-3 py-2 font-medium text-slate-600 rounded-md"
-              >
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="30">30</option>
-                <option value="40">40</option>
-              </select>
-              <span className="font-medium text-sm text-slate-600">
-                Result: 1 - {show} of {data.total}
-              </span>
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <a
+                  onClick={() => {
+                    handleGenerateReport();
+                  }}
+                  className="flex items-center  text-gray-700 hover:text-gray-800 cursor-pointer gap-3 font-semibold"
+                >
+                  <Printer size={16} />
+                  <span className="text-[13.5px]">Generate Report</span>
+                </a>
+                <div className="flex text-sm items-center gap-3 font-semibold">
+                  <span className="text-blue-800">Total Revenue:</span>
+                  <span>
+                    {status === "success" &&
+                      data?.results?.reduce((a, b) => a + b.amount, 0)}{" "}
+                    Frw
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-end items-center gap-4 w-full">
+                <select
+                  value={show}
+                  onChange={(e) => {
+                    setshow(parseInt(e.target.value));
+                  }}
+                  className="text-sm border border-slate-200 px-3 py-2 font-medium text-slate-600 rounded-md"
+                >
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="30">30</option>
+                  <option value="40">40</option>
+                </select>
+                <span className="font-medium text-sm text-slate-600">
+                  Result: 1 - {show} of {data.total}
+                </span>
+              </div>
             </div>
           )}
         </div>
