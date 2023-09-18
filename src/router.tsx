@@ -16,6 +16,8 @@ import Employees from "./pages/Employees";
 import CreateEmployee from "./pages/CreateEmployee";
 import EditEmployee from "./pages/EditEmployee";
 import Restorants from "./pages/Restorants";
+import CreateRestorant from "./pages/CreateRestorant";
+import EditRestorant from "./pages/EditRestorant";
 
 const router = createBrowserRouter([
   {
@@ -45,6 +47,22 @@ const router = createBrowserRouter([
             element: (
               <ProtectedRoute roles={["mtn-admin"]}>
                 <Restorants />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "restorants/new",
+            element: (
+              <ProtectedRoute roles={["mtn-admin"]}>
+                <CreateRestorant />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "restorants/:id/edit",
+            element: (
+              <ProtectedRoute roles={["mtn-admin"]}>
+                <EditRestorant />
               </ProtectedRoute>
             ),
           },

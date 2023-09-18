@@ -1,14 +1,31 @@
-import { Printer, RefreshCcw, Search, Trash, X } from "react-feather";
-import { Fragment, useState, useMemo } from "react";
+import {
+  Download,
+  Edit,
+  PlusCircle,
+  RefreshCcw,
+  Search,
+  Trash,
+  X,
+} from "react-feather";
+import { Fragment, useState, useMemo, useRef } from "react";
 //  @ts-ignore
 import { useClickAway } from "@uidotdev/usehooks";
 import "react-datepicker/dist/react-datepicker.css";
 import { useQuery } from "react-query";
 import { useDebounce } from "usehooks-ts";
-import { collection, deleteDoc, doc, getDocs, query } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { firestore } from "../config/firebase";
 import Loader from "../components/Loader";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
+import ReportToPrint from "../components/ReportToPrint";
 
 export default function Restorants() {
   const [showSearch, setshowSearch] = useState(false);
@@ -89,8 +106,47 @@ export default function Restorants() {
       });
   };
 
+  const [generatingR, setgeneratingR] = useState(false);
+
+  const handleGenerateReport = async (restorant: any) => {
+    setgeneratingR(true);
+    const orders = await getDocs(
+      query(
+        collection(firestore, "orders"),
+        where("resorantId", "==", restorant.id)
+      )
+    )
+      .then((e) => {
+        return e.docs.map((e) => {
+          return {
+            id: e.id,
+            ...e.data(),
+          };
+        });
+      })
+      .finally(() => {
+        setgeneratingR(false);
+      });
+
+    setRestantToReport({ restorantName: restorant.name, orders: orders });
+  };
+
+  const [restantToReport, setRestantToReport] = useState(null);
+
+  const reportRef = useRef(null);
+
   return (
     <Fragment>
+      {restantToReport && (
+        <div className="hidden">
+          <ReportToPrint
+            restorantName={restantToReport.name}
+            orders={restantToReport.orders}
+            ref={reportRef}
+          />
+        </div>
+      )}
+
       <div>
         <div className="flex items-center gap-3 justify-between">
           <div>
@@ -100,6 +156,15 @@ export default function Restorants() {
             <p className="text-[13.5px] font-medium text-gray-500">
               Total restorants available
             </p>
+          </div>
+          <div>
+            <Link
+              className="flex items-center gap-3 text-blue-800 font-semibold"
+              to="/restorants/new"
+            >
+              <PlusCircle size={"16px"} />
+              <span className="text-sm">Add new Restorant</span>
+            </Link>
           </div>
         </div>
         <div className="py-8">
@@ -188,7 +253,7 @@ export default function Restorants() {
 
               <div className="flex items-center justify-start">
                 <a className="text-sm cursor-pointer  flex items-center gap-2  font-medium text-gray-500 capitalize ">
-                  <span>Revenue</span>
+                  <span>Email</span>
                 </a>
               </div>
 
@@ -249,18 +314,30 @@ export default function Restorants() {
 
                   <div className="flex  gap-2 flex-col items-start justify-center">
                     <span className="text-[13px] text-slate-600 font-medium">
-                      {e?.revenue}
+                      {e.email}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 justify-end">
                     {/* <a
                       className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
-                      onClick={(i) => {
-                        window.print();
+                      onClick={() => {
+                        if (!generatingR) {
+                          handleGenerateReport(e);
+                        }
                       }}
                     >
-                      <Printer className="text-green-500 " size={18} />
+                      {restantToReport?.id === e.id && generatingR ? (
+                        <Loader />
+                      ) : (
+                        <Download className="text-green-500 " size={18} />
+                      )}
                     </a> */}
+                    <Link
+                      className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
+                      to={`/restorants/${e.id}/edit`}
+                    >
+                      <Edit className="text-blue-500 " size={18} />
+                    </Link>
                     <a
                       className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
                       onClick={(i) => {

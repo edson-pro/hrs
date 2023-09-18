@@ -18,6 +18,7 @@ import Loader from "../components/Loader";
 import { ArrowRight } from "react-feather";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import qs from "qs";
 
 export default function NewOrder() {
   const initialValues = {
@@ -27,6 +28,10 @@ export default function NewOrder() {
   const loginSchema = Yup.object().shape({
     code: Yup.string().required(),
   });
+
+  const restotantId = qs.parse(window.location.search, {
+    ignoreQueryPrefix: true,
+  }).restorantId;
 
   const [customer, setcustomer] = useState<any>();
 
@@ -86,25 +91,7 @@ export default function NewOrder() {
 
   const createOrder = (e) => {
     setorderingMenu(e.id);
-    console.log({
-      customer: {
-        names: customer.names,
-        id: customer.id,
-        photo: customer.photo,
-      },
-      amount: e.price,
-      menu: {
-        name: e.name,
-        id: e.id,
-        image: e.image,
-        price: e.price,
-        description: e.description,
-        ingredients: e.ingredients,
-      },
-      status: "pending",
-      created_at: serverTimestamp(),
-      updated_at: serverTimestamp(),
-    });
+
     return addDoc(collection(firestore, "orders"), {
       customer: {
         names: customer.names,
@@ -120,6 +107,7 @@ export default function NewOrder() {
         description: e.description,
         ingredients: e.ingredients,
       },
+      restotantId,
       status: "pending",
       created_at: serverTimestamp(),
       updated_at: serverTimestamp(),

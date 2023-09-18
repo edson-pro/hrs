@@ -57,7 +57,7 @@ const ComponentToPrint = React.forwardRef((props: any, ref: any) => {
       <QRCode
         size={456}
         style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-        value={`https://hrs-1-8f88d.web.app/new-order`}
+        value={`https://hrs-1-8f88d.web.app/new-order?restorantId=${props?.restorantId}`}
         viewBox={`0 0 256 256`}
       />
     </div>

@@ -1,16 +1,33 @@
-import { Calendar, Check, Printer, RefreshCcw, Search, X } from "react-feather";
-import { Fragment, forwardRef, useState, useMemo } from "react";
+import {
+  Calendar,
+  Check,
+  Download,
+  RefreshCcw,
+  Search,
+  X,
+} from "react-feather";
+import React, { Fragment, forwardRef, useState, useMemo, useRef } from "react";
 //  @ts-ignore
 import { useClickAway } from "@uidotdev/usehooks";
 import "react-datepicker/dist/react-datepicker.css";
 import { useQuery } from "react-query";
 import { useDebounce } from "usehooks-ts";
-import { collection, doc, getDocs, query, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { firestore } from "../config/firebase";
 import Loader from "../components/Loader";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import Avatar from "react-avatar";
+import { useAuth } from "../context/authContext";
+import ReactToPrint from "react-to-print";
+import ReportToPrint from "../components/ReportToPrint";
 
 const DateInput = forwardRef(({ value, onClick }: any, ref: any) => (
   <a
@@ -61,11 +78,17 @@ export default function Orders() {
     [debouncedValue, sort, show, filterDate]
   );
 
+  const { user }: any = useAuth();
+
   const fetchOrders = async (e) => {
     const { filterDate, search, show } = e.queryKey[1];
 
+    console.log(user.restorantId);
     const allOrdersFromFirebase: any = await getDocs(
-      query(collection(firestore, "orders"))
+      query(
+        collection(firestore, "orders"),
+        where("restorantId", "==", user.restorantId)
+      )
     ).then((e) => {
       return e.docs.map((e) => {
         return {
@@ -99,6 +122,7 @@ export default function Orders() {
     refetchOnWindowFocus: false,
     queryKey: qk,
     retry: false,
+    enabled: Boolean(user?.restorantId),
   });
 
   const clearFilters = () => {
@@ -145,7 +169,7 @@ export default function Orders() {
       });
   };
 
-  const handleGenerateReport = async () => {};
+  const reportRef = useRef(null);
   return (
     <Fragment>
       <div>
@@ -403,20 +427,27 @@ export default function Orders() {
           {status === "success" && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <a
-                  onClick={() => {
-                    handleGenerateReport();
+                <ReactToPrint
+                  trigger={() => {
+                    return (
+                      <a className="flex items-center  text-gray-700 hover:text-gray-800 cursor-pointer gap-3 font-semibold">
+                        <Download size={16} />
+                        <span className="text-[13.5px]">Generate Report</span>
+                      </a>
+                    );
                   }}
-                  className="flex items-center  text-gray-700 hover:text-gray-800 cursor-pointer gap-3 font-semibold"
-                >
-                  <Printer size={16} />
-                  <span className="text-[13.5px]">Generate Report</span>
-                </a>
+                  content={() => reportRef.current}
+                />
+
                 <div className="flex text-sm items-center gap-3 font-semibold">
                   <span className="text-blue-800">Total Revenue:</span>
                   <span>
                     {status === "success" &&
-                      data?.results?.reduce((a, b) => a + b.amount, 0)}{" "}
+                      data?.results
+                        .filter((e) => {
+                          return e.status === "completed";
+                        })
+                        .reduce((a, b) => a + b.amount, 0)}
                     Frw
                   </span>
                 </div>
@@ -441,6 +472,14 @@ export default function Orders() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="hidden">
+        <ReportToPrint
+          restorantName={user.name}
+          orders={data?.results || []}
+          ref={reportRef}
+        />
       </div>
     </Fragment>
   );

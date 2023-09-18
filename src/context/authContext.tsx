@@ -68,6 +68,7 @@ function useProvideAuth() {
       setUser({
         username: user.email.split("@")[0],
         name: restrant?.name,
+        restorantId: restrant?.id,
         email: user.email,
         photoURL: user.photoURL,
         id: user.uid,

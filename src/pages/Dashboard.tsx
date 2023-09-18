@@ -2,17 +2,25 @@ import { Fragment, useMemo } from "react";
 import { CheckCircle } from "react-feather";
 import { useQuery } from "react-query";
 import { useAuth } from "../context/authContext";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { firestore } from "../config/firebase";
 
 export default function Dashboard() {
   const fetchAnalytics = async () => {
-    const [ordersCountFromFirestore, menusCountFromFirestore] =
-      await Promise.all([
-        getDocs(collection(firestore, "orders")),
-        getDocs(collection(firestore, "menus")),
-        getDocs(collection(firestore, "employees")),
-      ]);
+    const [
+      ordersCountFromFirestore,
+      menusCountFromFirestore,
+      employeesCountFromFirestore,
+    ] = await Promise.all([
+      getDocs(
+        query(
+          collection(firestore, "orders"),
+          where("restorantId", "==", user.restorantId)
+        )
+      ),
+      getDocs(collection(firestore, "menus")),
+      getDocs(collection(firestore, "employees")),
+    ]);
     return {
       orders: {
         value: ordersCountFromFirestore.size,
@@ -21,7 +29,7 @@ export default function Dashboard() {
         value: menusCountFromFirestore.size,
       },
       employees: {
-        value: menusCountFromFirestore.size,
+        value: employeesCountFromFirestore.size,
       },
     };
   };
