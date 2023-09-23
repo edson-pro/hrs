@@ -14,6 +14,7 @@ import {
 import { firestore } from "../config/firebase";
 import AppFormTextarea from "./forms/AppFormTextarea";
 import Dropzone from "./Dropzone";
+import { useAuth } from "../context/authContext";
 
 export default function MenuForm({ menu }: any) {
   const adminSchema = Yup.object().shape({
@@ -36,6 +37,8 @@ export default function MenuForm({ menu }: any) {
     image: menu?.image || "",
   };
 
+  const { user }: any = useAuth();
+
   const formatToSave = (values) => {
     return {
       name: values.name,
@@ -45,11 +48,13 @@ export default function MenuForm({ menu }: any) {
       ingredients: values.ingredients.split(",").map((e) => e.trim()),
       availability: values.availability,
       image: values.image || "",
+      restorantId: user?.restorantId || "",
     };
   };
   const navigate = useNavigate();
   const handleSubmit = (values, { setSubmitting, setStatus }) => {
     const data = formatToSave(values);
+    console.log(data);
     return (
       menu
         ? updateDoc(doc(firestore, "menus", menu.id), {

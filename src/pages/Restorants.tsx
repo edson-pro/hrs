@@ -7,7 +7,7 @@ import {
   Trash,
   X,
 } from "react-feather";
-import { Fragment, useState, useMemo, useRef } from "react";
+import { Fragment, useState, useMemo, useRef, useEffect } from "react";
 //  @ts-ignore
 import { useClickAway } from "@uidotdev/usehooks";
 import "react-datepicker/dist/react-datepicker.css";
@@ -26,6 +26,7 @@ import Loader from "../components/Loader";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import ReportToPrint from "../components/ReportToPrint";
+import { useReactToPrint } from "react-to-print";
 
 export default function Restorants() {
   const [showSearch, setshowSearch] = useState(false);
@@ -106,14 +107,14 @@ export default function Restorants() {
       });
   };
 
-  const [generatingR, setgeneratingR] = useState(false);
+  const [generatingR, setgeneratingR] = useState(null);
 
   const handleGenerateReport = async (restorant: any) => {
-    setgeneratingR(true);
+    setgeneratingR(restorant.id);
     const orders = await getDocs(
       query(
         collection(firestore, "orders"),
-        where("resorantId", "==", restorant.id)
+        where("restorantId", "==", restorant.id)
       )
     )
       .then((e) => {
@@ -125,22 +126,35 @@ export default function Restorants() {
         });
       })
       .finally(() => {
-        setgeneratingR(false);
+        setgeneratingR(undefined);
       });
+
+    console.log(restorant.name);
 
     setRestantToReport({ restorantName: restorant.name, orders: orders });
   };
-
   const [restantToReport, setRestantToReport] = useState(null);
-
   const reportRef = useRef(null);
+
+  const handlePrint = useReactToPrint({
+    content: () => reportRef.current,
+  });
+
+  useEffect(() => {
+    if (restantToReport) {
+      setTimeout(() => {
+        /// print
+        handlePrint();
+      }, 500);
+    }
+  }, [restantToReport]);
 
   return (
     <Fragment>
       {restantToReport && (
         <div className="hidden">
           <ReportToPrint
-            restorantName={restantToReport.name}
+            restorantName={restantToReport.restorantName}
             orders={restantToReport.orders}
             ref={reportRef}
           />
@@ -318,7 +332,7 @@ export default function Restorants() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3 justify-end">
-                    {/* <a
+                    <a
                       className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
                       onClick={() => {
                         if (!generatingR) {
@@ -326,12 +340,12 @@ export default function Restorants() {
                         }
                       }}
                     >
-                      {restantToReport?.id === e.id && generatingR ? (
+                      {generatingR === e.id ? (
                         <Loader />
                       ) : (
                         <Download className="text-green-500 " size={18} />
                       )}
-                    </a> */}
+                    </a>
                     <Link
                       className="p-2 w-10 h-10 hover:bg-gray-200 cursor-pointer rounded-full  flex items-center justify-center"
                       to={`/restorants/${e.id}/edit`}

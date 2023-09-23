@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Loader from "../components/Loader";
 import QRCode from "react-qr-code";
 import ReactToPrint from "react-to-print";
+import { useAuth } from "../context/authContext";
 
 export default function QrCode() {
   const [loadingQrCode, setloadingQrCode] = useState(true);
@@ -12,6 +13,8 @@ export default function QrCode() {
     }, 1000);
   }, []);
   const componentRef = useRef();
+
+  const { user }: any = useAuth();
   return (
     <div>
       <div className="flex bg-white rounded-md border-[3px] overflow-hidden border-yellow-300 max-w-sm mx-auto gap-4 h-60">
@@ -29,7 +32,10 @@ export default function QrCode() {
               width: "100%",
             }}
           >
-            <ComponentToPrint ref={componentRef} />
+            <ComponentToPrint
+              restorantId={user.restorantId}
+              ref={componentRef}
+            />
           </div>
         )}
       </div>
@@ -51,13 +57,12 @@ export default function QrCode() {
 }
 
 const ComponentToPrint = React.forwardRef((props: any, ref: any) => {
-  console.log(props);
   return (
     <div className="p-2" ref={ref}>
       <QRCode
         size={456}
         style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-        value={`https://hrs-1-8f88d.web.app/new-order?restorantId=${props?.restorantId}`}
+        value={`http://172.20.10.9:5173/new-order?restorantId=${props?.restorantId}`}
         viewBox={`0 0 256 256`}
       />
     </div>

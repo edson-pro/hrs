@@ -29,10 +29,7 @@ export default function page() {
         password: values.password,
       })
       .then(() => {
-        setTimeout(() => {
-          navigate("/");
-          setSubmitting(false);
-        }, 1000);
+        navigate("/");
       })
       .catch((err: any) => {
         setSubmitting(false);

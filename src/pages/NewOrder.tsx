@@ -29,7 +29,7 @@ export default function NewOrder() {
     code: Yup.string().required(),
   });
 
-  const restotantId = qs.parse(window.location.search, {
+  const restorantId = qs.parse(window.location.search, {
     ignoreQueryPrefix: true,
   }).restorantId;
 
@@ -61,7 +61,10 @@ export default function NewOrder() {
 
   const fetchMenus = async () => {
     const allMenusFromFirebase: any = await getDocs(
-      query(collection(firestore, "menus"))
+      query(
+        collection(firestore, "menus"),
+        where("restorantId", "==", restorantId)
+      )
     ).then((e) => {
       return e.docs.map((e) => {
         return {
@@ -107,7 +110,7 @@ export default function NewOrder() {
         description: e.description,
         ingredients: e.ingredients,
       },
-      restotantId,
+      restorantId,
       status: "pending",
       created_at: serverTimestamp(),
       updated_at: serverTimestamp(),

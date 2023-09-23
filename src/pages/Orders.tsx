@@ -6,7 +6,7 @@ import {
   Search,
   X,
 } from "react-feather";
-import React, { Fragment, forwardRef, useState, useMemo, useRef } from "react";
+import { Fragment, forwardRef, useState, useMemo, useRef } from "react";
 //  @ts-ignore
 import { useClickAway } from "@uidotdev/usehooks";
 import "react-datepicker/dist/react-datepicker.css";
@@ -83,13 +83,15 @@ export default function Orders() {
   const fetchOrders = async (e) => {
     const { filterDate, search, show } = e.queryKey[1];
 
-    console.log(user.restorantId);
-    const allOrdersFromFirebase: any = await getDocs(
-      query(
-        collection(firestore, "orders"),
-        where("restorantId", "==", user.restorantId)
-      )
-    ).then((e) => {
+    const queryF =
+      user.role === "mtn-admin"
+        ? collection(firestore, "orders")
+        : query(
+            collection(firestore, "orders"),
+            where("restorantId", "==", user.restorantId)
+          );
+
+    const allOrdersFromFirebase: any = await getDocs(queryF).then((e) => {
       return e.docs.map((e) => {
         return {
           id: e.id,
@@ -122,7 +124,7 @@ export default function Orders() {
     refetchOnWindowFocus: false,
     queryKey: qk,
     retry: false,
-    enabled: Boolean(user?.restorantId),
+    enabled: Boolean(user),
   });
 
   const clearFilters = () => {
@@ -384,7 +386,7 @@ export default function Orders() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3 justify-end">
-                    {e.status === "pending" && (
+                    {e.status === "pending" && user.role === "admin" && (
                       <Fragment>
                         {markingOrder?.id === e.id ? (
                           <Loader />
@@ -426,32 +428,35 @@ export default function Orders() {
 
           {status === "success" && (
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <ReactToPrint
-                  trigger={() => {
-                    return (
-                      <a className="flex items-center  text-gray-700 hover:text-gray-800 cursor-pointer gap-3 font-semibold">
-                        <Download size={16} />
-                        <span className="text-[13.5px]">Generate Report</span>
-                      </a>
-                    );
-                  }}
-                  content={() => reportRef.current}
-                />
+              {user.role === "admin" && (
+                <div className="flex items-center justify-between mb-4">
+                  <ReactToPrint
+                    trigger={() => {
+                      return (
+                        <a className="flex items-center  text-gray-700 hover:text-gray-800 cursor-pointer gap-3 font-semibold">
+                          <Download size={16} />
+                          <span className="text-[13.5px]">Generate Report</span>
+                        </a>
+                      );
+                    }}
+                    content={() => reportRef.current}
+                  />
 
-                <div className="flex text-sm items-center gap-3 font-semibold">
-                  <span className="text-blue-800">Total Revenue:</span>
-                  <span>
-                    {status === "success" &&
-                      data?.results
-                        .filter((e) => {
-                          return e.status === "completed";
-                        })
-                        .reduce((a, b) => a + b.amount, 0)}
-                    Frw
-                  </span>
+                  <div className="flex text-sm items-center gap-3 font-semibold">
+                    <span className="text-blue-800">Total Revenue:</span>
+                    <span>
+                      {status === "success" &&
+                        data?.results
+                          .filter((e) => {
+                            return e.status === "completed";
+                          })
+                          .reduce((a, b) => a + b.amount, 0)
+                          .toFixed(2)}
+                      Frw
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="flex justify-end items-center gap-4 w-full">
                 <select
                   value={show}
@@ -477,7 +482,7 @@ export default function Orders() {
       <div className="hidden">
         <ReportToPrint
           restorantName={user.name}
-          orders={data?.results || []}
+          orders={data?.results.filter((e) => e.status === "completed") || []}
           ref={reportRef}
         />
       </div>

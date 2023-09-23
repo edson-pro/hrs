@@ -6,10 +6,18 @@ import { useClickAway } from "@uidotdev/usehooks";
 import "react-datepicker/dist/react-datepicker.css";
 import { useQuery } from "react-query";
 import { useDebounce } from "usehooks-ts";
-import { collection, deleteDoc, doc, getDocs, query } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { firestore } from "../config/firebase";
 import Loader from "../components/Loader";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/authContext";
 
 export default function Menus() {
   const [showSearch, setshowSearch] = useState(false);
@@ -38,11 +46,16 @@ export default function Menus() {
     [debouncedValue, sort, show]
   );
 
+  const { user }: any = useAuth();
+
   const fetchMenus = async (e) => {
     const { search, show } = e.queryKey[1];
 
     const allMenusFromFirebase: any = await getDocs(
-      query(collection(firestore, "menus"))
+      query(
+        collection(firestore, "menus"),
+        where("restorantId", "==", user?.restorantId)
+      )
     ).then((e) => {
       return e.docs.map((e) => {
         return {

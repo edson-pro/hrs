@@ -17,6 +17,18 @@ export default function Navbar() {
   const { user, loading, logout }: any = useAuth();
 
   const navigate = useNavigate();
+
+  const getGreetings = () => {
+    const hours = new Date().getHours();
+    if (hours < 12) {
+      return "Good morning";
+    } else if (hours < 18) {
+      return "Good afternoon";
+    } else {
+      return "Good evening";
+    }
+  };
+
   return (
     <nav className="w-full z-40 fixed border-b bg-white border-slate-200">
       <div className="pl-[280px]">
@@ -27,7 +39,8 @@ export default function Navbar() {
                 {user?.name || "Dashboard"}
               </h4>
               <p className="text-[13.5px] capitalize font-medium text-gray-500">
-                Good evening, at {user?.username}
+                {getGreetings()}, at{" "}
+                {user.role === "mtn-admin" ? "Human resource" : user?.username}
               </p>
             </div>
           </div>

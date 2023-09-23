@@ -7,19 +7,28 @@ import { firestore } from "../config/firebase";
 
 export default function Dashboard() {
   const fetchAnalytics = async () => {
+    const queryF =
+      user.role === "mtn-admin"
+        ? collection(firestore, "orders")
+        : query(
+            collection(firestore, "orders"),
+            where("restorantId", "==", user.restorantId)
+          );
     const [
       ordersCountFromFirestore,
       menusCountFromFirestore,
       employeesCountFromFirestore,
+      restorantsCountFromFirestore,
     ] = await Promise.all([
+      getDocs(queryF),
       getDocs(
         query(
-          collection(firestore, "orders"),
-          where("restorantId", "==", user.restorantId)
+          collection(firestore, "menus"),
+          where("restorantId", "==", user?.restorantId)
         )
       ),
-      getDocs(collection(firestore, "menus")),
       getDocs(collection(firestore, "employees")),
+      getDocs(collection(firestore, "restorants")),
     ]);
     return {
       orders: {
@@ -30,6 +39,9 @@ export default function Dashboard() {
       },
       employees: {
         value: employeesCountFromFirestore.size,
+      },
+      restorants: {
+        value: restorantsCountFromFirestore.size,
       },
     };
   };
@@ -56,17 +68,36 @@ export default function Dashboard() {
         desc: "Total Employees",
         role: ["mtn-admin"],
       },
+      {
+        title: "Restorants",
+        value: data ? data["restorants"]?.value : "---",
+        desc: "Total Restorants",
+        role: ["mtn-admin"],
+      },
     ],
     [data]
   );
   const { user }: any = useAuth();
+
+  const getGreetings = () => {
+    const hours = new Date().getHours();
+    if (hours < 12) {
+      return "Good morning";
+    } else if (hours < 18) {
+      return "Good afternoon";
+    } else {
+      return "Good evening";
+    }
+  };
 
   return (
     <Fragment>
       <div className="max-w-6xl mx-auto">
         <div>
           <h4 className="text-yellow-500 mb-1 text-[18px] font-semibold capitalize">
-            Welcome back {user?.username}, Good evening.
+            Welcome back{" "}
+            {user.role === "mtn-admin" ? "Human resource" : user?.username},
+            {getGreetings()}.
           </h4>
           <p className="text-[13.5px] font-medium text-gray-500">
             Here’s what’s happening with your business today.
@@ -80,7 +111,11 @@ export default function Dashboard() {
               </h4>
             </div>
           </div>
-          <div className="grid rounded-b-lg bg-white border-slate-300 border border-t-transparent grid-cols-2 gap-2">
+          <div
+            className={`grid rounded-b-lg bg-white border-slate-300 border border-t-transparent ${
+              user.role === "mtn-admin" ? "grid-cols-3" : "grid-cols-2"
+            } gap-2`}
+          >
             {cards
               .filter((e) => {
                 return e.role.includes(user?.role);

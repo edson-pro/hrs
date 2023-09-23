@@ -1,8 +1,9 @@
 import { doc, getDoc } from "firebase/firestore";
 import { useQuery } from "react-query";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { firestore } from "../config/firebase";
 import Loader from "../components/Loader";
+import { useAuth } from "../context/authContext";
 
 export default function OrderDetails() {
   const params = useParams();
@@ -21,6 +22,10 @@ export default function OrderDetails() {
     queryKey: ["menus", id],
     retry: 1,
   });
+
+  const navigate = useNavigate();
+
+  const { user }: any = useAuth();
 
   return (
     <div className="px-3">
@@ -137,6 +142,21 @@ export default function OrderDetails() {
                       </span>
                     </div>
                   </div>
+
+                  {(user?.role !== "mtn-admin" || user?.role !== "admin") && (
+                    <div>
+                      {data.status === "canceled" && (
+                        <a
+                          onClick={() => {
+                            navigate("/new-order");
+                          }}
+                          className="text-sm mt-3 cursor-pointer text-blue-500 font-semibold underline"
+                        >
+                          Order Again
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
